@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
 import json
 import gzip
+from common import get_price
 from tokenizer import NgramTokenizer
 
 
 META = ('brand', 'maker')
-PRICE_REGEX = re.compile(ur'([\d,]+)円')
 NGRAM_TOKENIZER = NgramTokenizer()
 INVALID_DESCRIPTION_SNIPPET = u'商品情報はメーカー様にご協力いただき掲載しております'
 # Remove electronics products as their price range are too different
@@ -34,19 +33,11 @@ def gzip_or_text(filename):
     return open(filename)
 
 
-def extract_price(s):
-    match = PRICE_REGEX.search(s)
-    if match:
-        return int(match.groups()[0].replace(',', ''))
-    else:
-        return None
-
-
 def is_valid_product(product):
     if 'price' not in product or not product['price']:
         return False
 
-    price = extract_price(product['price'])
+    price = get_price(product)
     if not price:
         return False
     product['price'] = price
