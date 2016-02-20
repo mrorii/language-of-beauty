@@ -5,19 +5,8 @@ import argparse
 import json
 import logging
 import os
-from collections import defaultdict
 
-from common import get_price, get_age_group
-
-
-def load_items(filename, key):
-    item_by_id = defaultdict(dict)
-    with open(filename, 'r') as f:
-        for line in f:
-            item = json.loads(line)
-            item_by_id[item[key]] = item
-
-    return item_by_id
+from common import get_price, get_age_group, load_items
 
 
 def facet(review, product, user, facet_type):
@@ -25,7 +14,7 @@ def facet(review, product, user, facet_type):
     if facet_type == 'none':
         return 'all'
     elif facet_type == 'age':
-        return get_age_group(user)
+        return get_age_group(user, review)
     else:
         raise ValueError('Invalid facet type')
 
