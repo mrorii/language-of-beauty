@@ -8,7 +8,8 @@ import os
 
 from gensim import corpora
 
-from tokenizer import Tokenizer
+from common import SimpleTokenizer
+
 
 def parse_args():
     description = '''
@@ -21,14 +22,11 @@ def parse_args():
 
 
 def load_reviews(filename):
-    tokeniser = Tokenizer(normalize_number=False)
+    tokeniser = SimpleTokenizer()
     with open(filename, 'r') as f:
         for line in f:
             review = json.loads(line)
-            nested_tokens = [tokeniser.tokenize(sentence)
-                             for sentence in review['text']]
-            tokens = [token for sublist in nested_tokens for token in sublist]
-            yield tokens
+            yield tokeniser.tokenize(review)
 
 
 def main():

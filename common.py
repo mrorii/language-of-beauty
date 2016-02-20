@@ -3,6 +3,9 @@
 
 import json
 import re
+from collections import defaultdict
+
+from tokenizer import Tokenizer
 
 PRICE_REGEX = re.compile(ur'([\d,]+)円')
 
@@ -42,6 +45,14 @@ def is_number(s):
         return False
 
 
+def convert_to_int(s):
+    try:
+        return int(s)
+    except ValueError:
+        # no-op
+        pass
+
+
 def get_price(product):
     if 'price' not in product:
         return None
@@ -54,13 +65,22 @@ def get_price(product):
         return None
 
 
-def get_age(user):
-    if not user or not 'age' in user or not user['age']:
+def get_rating(review):
+    if 'rating' not in review:
         return
+    return convert_to_int(review['rating'])
+
+
+def get_age(user, review=None):
+    if review and 'user_age' in review:
+        return review['user_age']
+
     return user['age']
 
-def get_age_group(user):
-    age = get_age(user)
+
+def get_age_group(user, review=None):
+    age = get_age(user, review)
+
     if not age:
         return
 
@@ -78,3 +98,27 @@ def get_age_group(user):
         return "40's"
     else:
         return ">= 50's"
+
+
+def load_items(filename, key):
+    item_by_id = defaultdict(dict)
+    with open(filename, 'r') as f:
+        for line in f:
+            item = json.loads(line)
+            item_by_id[item[key]] = item
+
+    return item_by_id
+
+
+class SimpleTokenizer(object):
+    def __init__(self, convert_to_base_form=True, normalize_number=False,
+                 append_pos=False):
+        self.tokenizer = Tokenizer(convert_to_base_form=convert_to_base_form,
+                                   normalize_number=normalize_number,
+                                   append_pos=append_pos)
+
+    def tokenize(self, review):
+        nested_tokens = [self.tokenizer.tokenize(sentence)
+                         for sentence in review['text']]
+        tokens = [token for sublist in nested_tokens for token in sublist]
+        return tokens
